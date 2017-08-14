@@ -4,6 +4,7 @@ const path = require('path')
 const mustacheExpress = require('mustache-express');
 const indexRouter = require('./routes/indexRoute')
 const aboutRouter = require('./routes/aboutRoute')
+const apiRouter = require('./routes/apiRoute')
 const session = require('express-session')
 const bodyParser = require('body-parser')
 
@@ -29,6 +30,7 @@ app.use(express.static(path.join(__dirname, 'static')))
 //Use the routes files.
 app.use('/', indexRouter);
 app.use('/about', aboutRouter);
+app.use('/api', apiRouter);
 
 app.listen(3000, function(){
   console.log("App running on port 3000")
