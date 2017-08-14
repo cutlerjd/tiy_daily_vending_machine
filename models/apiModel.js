@@ -24,24 +24,25 @@ function getAllItems() {
 function purchaseItem(item_id,debit_amount){
     return new Promise(function(resolve,reject){
     //Check if item is available
-    let action = verifyItemPurchase()
+    let action = verifyItemPurchase(item_id,debit_amount)
     action.then(postItemPurchase)
-    .catch(next)
-    
-
+    .then(resolve)
+    .catch(reject)
     })
 }
 
-function verifyItemPurchase(item_id,money_given){
+function verifyItemPurchase(purchaseItem,money_given){
     return new Promise(function(resolve, reject){
         let sql = `
-        SELECT *
-        FROM items
-        WHERE item_id = ?`
-        conn.query(sql,[item_id], function(err, results, fields){
+        SELECT i.iditems, i.item_name, i.item_cost, i.item_description, (i.item_quantity - COALESCE(SUM(t.transaction_item),0)) as item_quantity
+        FROM vending.items i
+        LEFT JOIN transactions t ON i.iditems=t.transaction_item
+        WHERE i.item_active = 1 AND i.iditems = ?
+        GROUP BY i.iditems`
+        conn.query(sql,[purchaseItem], function(err, results, fields){
             if(!err){
-                if(results[0]){
-                    if(results[0].item_cost <= funds){
+                if(results[0] && results[0].item_quantity > 0){
+                    if(results[0].item_cost <= money_given){
                         resolve ( {status : 'Success',
                                     item : results[0],
                                     money_given: money_given})
@@ -53,26 +54,50 @@ function verifyItemPurchase(item_id,money_given){
                                     item: results[0]
                                     })
                     }
-                }else{
+                } else if(results[0]){
+                    {
+                        reject ({
+                        status: 'Failure',
+                        errorMessage: ['Insufficent item quantity']
+                    })
+                    }
+                } else{
                     reject ( {
                         status: 'Failure',
-                        errorMesage: ['Item not found']
+                        errorMessage: ['Item not found']
                     })
                 }
             } else {
                 reject ({status: 'Failure',
-                        errorMesage : [{'dbError':err}]})
+                        errorMessage : [{'dbError':err}]})
             }
         })
     })
     
 }
+
 function postItemPurchase(item_obj){
-    return new Promise(function(resolve,request){
+    return new Promise(function(resolve,reject){
         let sql = `
+        INSERT INTO transactions (transaction_item,transaction_debit)
+        VALUES (?,?); 
         `
+        conn.query(sql,[item_obj.item.iditems,item_obj.item.item_cost],function(err,results,fields){
+            if(!err){
+                item_obj.vend_action = 'Dispense product'
+                item_obj.money_returned = item_obj.money_given - item_obj.item.item_cost
+                item_obj.item.item_quantity -= 1
+                resolve (item_obj)
+            } else {
+                reject( {status:'Failure',
+                        errorMessage:['DB Failure'],
+                        err: err})
+            }
+        })
     })
 }
+
 module.exports = {
-    getAllItems: getAllItems
+    getAllItems: getAllItems,
+    purchaseItem: purchaseItem
 }

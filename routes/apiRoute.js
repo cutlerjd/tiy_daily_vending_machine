@@ -24,9 +24,15 @@ router.get('/customer/items', function(req,res,next){
 })
 
 // POST /api/customer/items/:itemId/purchases - purchase an item
-// Expecting a parameter of ?money={int}
-router.get('/customer/items/:itemId/purchase', function(req,res,next){
-
+// Expecting a parameter of ?given_money={int}
+router.post('/customer/items/:itemId/purchase', function(req,res,next){
+    console.log("itemId",req.params.itemId)
+    console.log("given_money",req.body.given_money)
+    let purchase = apiModel.purchaseItem(req.params.itemId,req.body.given_money)
+    purchase.then(function(data){
+        data.item = formatJSON(data.item,false)
+        res.json(data)
+    })
 })
 
 // GET /api/vendor/purchases - get a list of all purchases with their item and date/time
@@ -58,11 +64,12 @@ const dbToJSON = {
 *   on. Otherwise all fields are stripped off that do not match dbToJSON.
 */
 function formatJSON(objJSON,includeAllFields){
+    console.log("Hello")
     let returnObj = {}
     Object.keys(objJSON).forEach(function(key){
         if (key in dbToJSON){
             returnObj[dbToJSON[key]] = objJSON[key]
-        } else if(include){
+        } else if(includeAllFields){
             returnObj[key] = objJSON[key]
         }
     })
