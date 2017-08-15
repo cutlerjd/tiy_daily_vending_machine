@@ -23,7 +23,6 @@ function getAllItems() {
 
 function purchaseItem(item_id,debit_amount){
     return new Promise(function(resolve,reject){
-    //Check if item is available
     let action = verifyItemPurchase(item_id,debit_amount)
     action.then(postItemPurchase)
     .then(resolve)
@@ -118,8 +117,30 @@ function getPurchases(){
         })
     })
 }
+function getMoney(){
+    return new Promise(function(resolve,reject){
+        let sql = `
+        SELECT SUM(transaction_debit) as money
+        from transactions
+        `
+        conn.query(sql,function(err,results,fields){
+            if(!err){
+                resolve( {
+                    status: 'Success',
+                    money: results[0].money
+                })
+            } else {
+                reject ( {
+                    status: 'Failure',
+                    errorMessage: 'DB Failure'
+                })
+            }
+        })
+    })
+}
 module.exports = {
     getAllItems: getAllItems,
     purchaseItem: purchaseItem,
-    getPurchases: getPurchases
+    getPurchases: getPurchases,
+    getMoney: getMoney
 }

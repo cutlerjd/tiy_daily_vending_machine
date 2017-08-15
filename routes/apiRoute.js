@@ -51,6 +51,15 @@ router.get('/vendor/purchases', function(req,res,next){
     .catch(res.json)
 })
 // GET /api/vendor/money - get a total amount of money accepted by the machine
+router.get('/vendor/money', function(req,res,next){
+    let moneys = apiModel.getMoney()
+    moneys.then(function(data){
+        res.json(data)
+    })
+    .catch(function(data){
+        res.json(data)
+    })
+})
 
 // POST /api/vendor/items - add a new item not previously existing in the machine
 
