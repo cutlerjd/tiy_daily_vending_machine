@@ -2,7 +2,7 @@ const conn = require('./db.js')
 
 function getAllItems() {
     let sql = `
-    SELECT i.iditems, i.item_name, i.item_cost, i.item_description, (i.item_quantity - COALESCE(SUM(t.transaction_item),0)) as item_quantity
+    SELECT i.iditems, i.item_name, i.item_cost, i.item_description, (i.item_quantity - COALESCE(COUNT(t.transaction_item),0)) as item_quantity
     FROM vending.items i
     LEFT JOIN transactions t ON i.iditems=t.transaction_item
     WHERE i.item_active = 1
@@ -34,7 +34,7 @@ function purchaseItem(item_id,debit_amount){
 function verifyItemPurchase(purchaseItem,money_given){
     return new Promise(function(resolve, reject){
         let sql = `
-        SELECT i.iditems, i.item_name, i.item_cost, i.item_description, (i.item_quantity - COALESCE(SUM(t.transaction_item),0)) as item_quantity
+        SELECT i.iditems, i.item_name, i.item_cost, i.item_description, (i.item_quantity - COALESCE(COUNT(t.transaction_item),0)) as item_quantity
         FROM vending.items i
         LEFT JOIN transactions t ON i.iditems=t.transaction_item
         WHERE i.item_active = 1 AND i.iditems = ?
