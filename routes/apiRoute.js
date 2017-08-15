@@ -26,12 +26,14 @@ router.get('/customer/items', function(req,res,next){
 // POST /api/customer/items/:itemId/purchases - purchase an item
 // Expecting a parameter of ?given_money={int}
 router.post('/customer/items/:itemId/purchase', function(req,res,next){
-    console.log("itemId",req.params.itemId)
-    console.log("given_money",req.body.given_money)
     let purchase = apiModel.purchaseItem(req.params.itemId,req.body.given_money)
     purchase.then(function(data){
         data.item = formatJSON(data.item,false)
         res.json(data)
+    })
+    .catch(function(data){
+        data.item = formatJSON(data.item,false)
+        res.json(data)        
     })
 })
 
@@ -48,7 +50,7 @@ router.post('/customer/items/:itemId/purchase', function(req,res,next){
 
 //Helper functions
 const dbToJSON = {
-    iditem:'id',
+    iditems:'id',
     item_name: 'name',
     item_description:'description',
     item_quantity: 'quanity',
