@@ -96,8 +96,30 @@ function postItemPurchase(item_obj){
         })
     })
 }
-
+function getPurchases(){
+    return new Promise(function(resolve,reject){
+        let sql = `
+        SELECT t.idtransactions as 'id', timestamp, t.transaction_item as 'item_id', t.transaction_debit, i.item_name, i.item_description
+        FROM transactions t
+        JOIN items i ON t.transaction_item=i.iditems
+        `
+        conn.query(sql,function(err,results,fields){
+            if(!err){
+                resolve( {
+                    status: 'Success',
+                    purchases: results
+                })
+            } else {
+                reject ( {
+                    status: 'Failure',
+                    errorMessage: 'DB Failure'
+                })
+            }
+        })
+    })
+}
 module.exports = {
     getAllItems: getAllItems,
-    purchaseItem: purchaseItem
+    purchaseItem: purchaseItem,
+    getPurchases: getPurchases
 }
