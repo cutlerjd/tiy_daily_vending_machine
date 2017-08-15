@@ -62,7 +62,14 @@ router.get('/vendor/money', function(req,res,next){
 })
 
 // POST /api/vendor/items - add a new item not previously existing in the machine
-
+router.post('vendor/items',function(req,res,next){
+    let newItem = {
+    item_name : req.body.name,
+    item_description : req.body.description,
+    item_quantity : req.body.quanity,
+    item_cost : req.body.cost
+    }
+})
 // PUT /api/vendor/items/:itemId - update item quantity, description, and cost
 
 
