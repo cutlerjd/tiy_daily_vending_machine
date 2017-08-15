@@ -20,6 +20,28 @@ function getAllItems() {
         })
 })
 }
+function getSingleItem(obj) {
+    let sql = `
+    SELECT i.iditems, i.item_name, i.item_cost, i.item_description, (i.item_quantity - COALESCE(COUNT(t.transaction_item),0)) as item_quantity
+    FROM vending.items i
+    LEFT JOIN transactions t ON i.iditems=t.transaction_item
+    WHERE i.item_active = 1 && i.iditems = ?
+    GROUP BY i.iditems;`
+
+    return new Promise(function (resolve, reject){
+        conn.query(sql, [obj.iditems], function (err, results, fields) {
+            if (!err) {
+                obj.item = results[0]
+                delete obj.iditems
+                resolve (obj)
+            }
+            else {
+                console.log("getSingleItem error", err)
+                reject ( err )
+            }
+        })
+})
+}
 
 function purchaseItem(item_id,debit_amount){
     return new Promise(function(resolve,reject){
@@ -138,9 +160,32 @@ function getMoney(){
         })
     })
 }
+function createItem(item_obj){
+    return new Promise(function(resolve,reject){
+        let sql = `
+        INSERT INTO items (item_name,item_cost,item_description,item_quantity)
+        VALUES (?,?,?,?)
+        `
+        conn.query(sql,[item_obj.item_name,item_obj.item_cost,item_obj.item_description,item_obj.item_quantity], function(err,results,fields){
+            if(!err){
+                resolve (getSingleItem({
+                    status: 'Success',
+                    iditems: results.insertId
+                }))
+            } else {
+                console.log("createITem failure",err)
+                reject ({
+                    status: 'Failure',
+                    errorMessage: 'DB failure'
+                })
+            }
+        })
+    })
+}
 module.exports = {
     getAllItems: getAllItems,
     purchaseItem: purchaseItem,
     getPurchases: getPurchases,
-    getMoney: getMoney
+    getMoney: getMoney,
+    createItem: createItem
 }
