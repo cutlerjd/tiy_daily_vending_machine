@@ -69,7 +69,6 @@ router.post('/vendor/items',function(req,res,next){
     item_quantity : req.body.quantity,
     item_cost : req.body.cost
     }
-    console.log(newItem)
     let item = apiModel.createItem(newItem)
     item.then(function(data){
         data.item = formatJSON(data.item,false) 
@@ -81,7 +80,21 @@ router.post('/vendor/items',function(req,res,next){
 })
 // PUT /api/vendor/items/:itemId - update item quantity, description, and cost
 
-
+router.patch('/vendor/items/:itemId',function(req,res,next){
+    let updateItem={}
+    if(req.body.name){updateItem.item_name=req.body.name}
+    if(req.body.description){updateItem.item_description=req.body.description}
+    if(req.body.quantity){updateItem.item_quantity=req.body.quantity}
+    if(req.body.cost){updateItem.item_cost=req.body.cost}
+    let item = apiModel.updateItem(req.params.itemId,updateItem)
+    item.then(function(data){
+        data.item = formatJSON(data.item,false) 
+        res.json(data)
+    })
+    .catch(function(data){
+        res.json(data)
+    })
+})
 
 
 //Helper functions

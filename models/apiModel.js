@@ -182,10 +182,43 @@ function createItem(item_obj){
         })
     })
 }
+function updateItem(id,obj){
+    return new Promise(function(resolve,reject){
+        let arrPromise = []
+        Object.keys(obj).forEach(function(key){
+            let temp = {}
+            temp[key] = obj[key]
+            arrPromise.push(updateItemProperty(id,temp))
+        })
+        let arrResults = Promise.all(arrPromise)
+        arrResults.then(function(data){
+            resolve (getSingleItem({status:'Success',
+                        iditems:id}))
+        })
+    })
+}
+function updateItemProperty(id,obj){
+    return new Promise(function(resolve,reject){
+        let sql = `
+        UPDATE items
+        SET ?
+        WHERE iditems = ?`
+        conn.query(sql,[obj,id],function(err,results,fields){
+            if(!err){
+                resolve ({iditems: id,
+                        change:obj})
+            } else {
+                reject({status:'Failure',
+                        errorMessage:'Insert failure'})
+            }
+        })
+    })
+}
 module.exports = {
     getAllItems: getAllItems,
     purchaseItem: purchaseItem,
     getPurchases: getPurchases,
     getMoney: getMoney,
-    createItem: createItem
+    createItem: createItem,
+    updateItem: updateItem
 }
